@@ -1,0 +1,25 @@
+[package]
+name = "pulurobot-robot"
+version = "0.1.0"
+authors = ["Brian Alberg <brian@alberg.org>"]
+
+[dependencies]
+ws = "0.7.3"
+serde = "1.0.33"
+serde_derive = "1.0.33"
+serde_json = "1.0.11"
+bitstream-io = "0.6.3"
+byteorder = "1.2.1"
+
+[[bin]]
+name = "robot"
+path = "src/robot/main.rs"
+
+[[bin]]
+name = "setup"
+path = "src/setup/main.rs"
+
+[[bin]]
+name = "test"
+path = "src/test/main.rs"
+
