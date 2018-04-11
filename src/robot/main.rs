@@ -123,9 +123,14 @@ fn main() {
 fn handle_help() {
     println!("Current implemented commands:
 
-    quit    Terminates the program
-    help    Prints this help message 
-    listen  Prints information broadcasted by the robot (only partially working)
+    quit        Terminates the program
+    help        Prints this help message 
+
+    listen      Prints information broadcasted by the robot (only partially working)
+
+    save {a|b}  Saves robots current coordinates as location A or B
+    goto {a|b}  Will try to route to location A or B respectively
+
     "); 
 }
 

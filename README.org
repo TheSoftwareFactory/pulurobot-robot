@@ -1,0 +1,23 @@
+* Robot Console Client
+
+** Current Functionality
+
+    =quit=        Terminates the program
+
+    =help=        Prints the help message containing available commands
+
+    =listen=      Prints information broadcasted by the robot (only partially working)
+
+    =save {a|b}=  Saves robots current coordinates as location A or B
+
+    =goto {a|b}=  Will try to route to location A or B respectively
+
+
+** Todo
+
+ - Improve listener with more commands, e.g. the =140= (Robot state) code.
+
+
+
+
+
