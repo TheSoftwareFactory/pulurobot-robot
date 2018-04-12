@@ -128,8 +128,8 @@ fn handle_help() {
 
     listen      Prints information broadcasted by the robot (only partially working)
 
-    save {a|b}  Saves robots current coordinates as location A or B
-    goto {a|b}  Will try to route to location A or B respectively
+    save [a|b]  Saves robots current coordinates as location A or B
+    goto [a|b]  Will try to route to location A or B respectively
 
     "); 
 }
@@ -141,11 +141,11 @@ fn handle_listen(mut stream:&TcpStream) {
         let cmd = cmd_buf[0];
         let len: i32 = ((cmd_buf[1] as i32) << 8) | (cmd_buf[2] as i32);
 
-        let mut buf: Vec<u8> = vec![0;len as usize];
-        stream.read_exact(&mut buf[..]);
-
         match cmd {
             130 => {
+                let mut buf: Vec<u8> = vec![0;len as usize];
+                stream.read_exact(&mut buf[..]);
+
                 let mut buf_angle = &buf[0..2];
                 let mut buf_x = &buf[2..7];
                 let mut buf_y = &buf[6..11];
@@ -159,7 +159,10 @@ fn handle_listen(mut stream:&TcpStream) {
                 println!("[130:{}] Location: x={}, y={}, angle={}", len, x, y, real_angle);
             },
             140 => {
-                println!("Some state was fetched");
+                let mut buf: Vec<u8> = vec![0;len as usize];
+                stream.read_exact(&mut buf[..]);
+
+                println!("Some state was fetched, of length {}", len);
             },
             _ => {}
         }
@@ -215,8 +218,10 @@ fn handle_goto_location(location:&str, config:&mut Config, mut stream:&TcpStream
 
     buf[11] = 0;
 
-    stream.write(&mut buf).unwrap();
-
+    match stream.write_all(&mut buf) {
+        Ok(s) => println!("{:?}", s),
+        Err(e) => println!("{:?}", e)
+    };
 }
 
 fn handle_save_location(location:&str, config:&mut Config, mut stream:&TcpStream) {
