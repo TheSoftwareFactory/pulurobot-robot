@@ -141,11 +141,11 @@ fn handle_listen(mut stream:&TcpStream) {
         let cmd = cmd_buf[0];
         let len: i32 = ((cmd_buf[1] as i32) << 8) | (cmd_buf[2] as i32);
 
+        let mut buf: Vec<u8> = vec![0;len as usize];
+        stream.read_exact(&mut buf[..]);
+
         match cmd {
             130 => {
-                let mut buf: Vec<u8> = vec![0;len as usize];
-                stream.read_exact(&mut buf[..]);
-
                 let mut buf_angle = &buf[0..2];
                 let mut buf_x = &buf[2..7];
                 let mut buf_y = &buf[6..11];

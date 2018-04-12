@@ -12,8 +12,8 @@ bitstream-io = "0.6.3"
 byteorder = "1.2.1"
 
 [[bin]]
-name = "robot"
-path = "src/robot/main.rs"
+name = "console"
+path = "src/console/main.rs"
 
 [[bin]]
 name = "setup"
