@@ -14,6 +14,8 @@ use std::io;
 use std::io::{BufWriter,BufReader,BufRead,Write,Read};
 use byteorder::{BigEndian, ReadBytesExt};
 //use std::io::prelude::*;
+use std::thread;
+use std::time::Duration;
 
 //use ws::*;
 
@@ -93,6 +95,7 @@ fn main() {
             "quit" => { println!("Bye!"); running = false; },
             "help" => handle_help(),
             "listen" => handle_listen(&robo_stream),
+            "free" => handle_free(&robo_stream),
             "save a" => handle_save_location("a", &mut config, &robo_stream),
             "save b" => handle_save_location("b", &mut config, &robo_stream),
             "goto a" => handle_goto_location("a", &mut config, &robo_stream),
@@ -127,6 +130,8 @@ fn handle_help() {
     help        Prints this help message 
 
     listen      Prints information broadcasted by the robot (only partially working)
+
+    free        Will unlock the wheels of the robot, to be able to freely move it around
 
     save [a|b]  Saves robots current coordinates as location A or B
     goto [a|b]  Will try to route to location A or B respectively
@@ -169,7 +174,26 @@ fn handle_listen(mut stream:&TcpStream) {
     }
 }
 
+fn handle_free(mut stream:&TcpStream) {
+
+    stream.set_write_timeout(None).expect("set_write_timeout call failed");
+    
+    let mut buf = [0; 4];
+
+    buf[0] = 58;
+    buf[1] = 0;
+    buf[2] = 1;
+    buf[3] = 5;
+    
+    match stream.write_all(&mut buf) {
+        Ok(s) => println!("{:?}", s),
+        Err(e) => println!("{:?}", e)
+    };
+}
+
 fn handle_goto_location(location:&str, config:&mut Config, mut stream:&TcpStream) {
+
+    stream.set_nonblocking(false).expect("set_nonblocking failed");
     
     let mut buf = [0; 12];
     let mut x:i32 = 0;

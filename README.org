@@ -8,6 +8,8 @@
 
     =listen=      Prints information broadcasted by the robot (only partially working)
 
+    =free=        Will unlock the wheels of the robot, to be able to freely move it around
+
     =save {a|b}=  Saves robots current coordinates as location A or B
 
     =goto {a|b}=  Will try to route to location A or B respectively
