@@ -471,7 +471,7 @@ fn handle_save_location(location:&str, config:&mut Config) {
     };
 
     //match config_file.write_all(new_config.as_bytes()) {
-    match serde_json::ser::to_writer(&config_file, &config) {
+    match serde_json::ser::to_writer_pretty(&config_file, &config) {
         Ok(_) => println!("Saved location {}: x={}, y={}", location.to_uppercase(), x, y),
         Err(e) => println!("{:?}", e)
     };

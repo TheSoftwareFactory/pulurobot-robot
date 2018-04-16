@@ -1,0 +1,10 @@
+{
+  "name": "R2D2",
+  "manufacturer": "Pulurobotics Oy Ltd",
+  "robot_address": "192.168.43.23",
+  "robot_port": "22222",
+  "location_a_x": -256,
+  "location_a_y": -3083,
+  "location_b_x": -1261,
+  "location_b_y": -1630
+}
