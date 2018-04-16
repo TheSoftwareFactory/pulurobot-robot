@@ -6,20 +6,20 @@
 
     =help=        Prints the help message containing available commands
 
-    =listen=      Prints information broadcasted by the robot (only partially working)
+    =listen=      Streams information broadcasted by the robot (Still needs work).
+                  Press [Enter] to stop the stream.
 
     =free=        Will unlock the wheels of the robot, to be able to freely move it around
+    =stop=        Will tell the robot to stop whatever it is currently doing
 
-    =save {a|b}=  Saves robots current coordinates as location A or B
+    =save [a|b]=  Saves robots current coordinates as location A or B
 
-    =goto {a|b}=  Will try to route to location A or B respectively
+    =goto [a|b]=  Will try to route to location A or B respectively
 
 
 ** Todo
 
- - Improve listener with more commands, e.g. the =140= (Robot state) code.
-
-
-
-
+ - Improve =listen= with more commands, e.g. the =140= (Robot state) code.
+ - Code-reorganizing: Detach functionality from the command-line UI, such
+   that the functionality can be reused.
 
