@@ -7,9 +7,10 @@
     =help=        Prints the help message containing available commands
 
     =listen=      Streams information broadcasted by the robot (Still needs work).
-                  Press [Enter] to stop the stream.
+                  Press =Enter= to stop the stream.
 
     =free=        Will unlock the wheels of the robot, to be able to freely move it around
+
     =stop=        Will tell the robot to stop whatever it is currently doing
 
     =save [a|b]=  Saves robots current coordinates as location A or B
