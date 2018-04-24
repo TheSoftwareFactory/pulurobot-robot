@@ -1,9 +1,13 @@
+mod pulurobot;
+
 #[macro_use]
 extern crate serde_derive;
 
 extern crate serde;
 extern crate serde_json;
 extern crate byteorder;
+
+use pulurobot::{Robot, PuluRobot, RobotState};
 
 use std::net::{TcpStream, Shutdown};
 use std::fs::{File, OpenOptions};
@@ -29,7 +33,7 @@ struct Config {
     location_b_y: Option<i32>,
 }
 
-enum RobotState {
+/*enum RobotState {
     Undef = -1,
 	Idle = 0,
 	Think = 1,
@@ -39,7 +43,7 @@ enum RobotState {
 	Right = 5,
 	Charging = 6,
     Daijuing = 7
-}
+}*/
 
 impl From<i8> for RobotState {
     fn from(t:i8) -> RobotState {
@@ -105,7 +109,7 @@ fn main() {
     // Check connection
     let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
 
-    print!("Testing connecting to robot at {}...", robo_addr);
+    /*print!("Testing connecting to robot at {}...", robo_addr);
     let robo_stream = match TcpStream::connect(robo_addr.as_str()) {
         Ok(s) => s,
         Err(_) => panic!("Failed to connect to Robot")
@@ -113,7 +117,7 @@ fn main() {
 
     print!("SUCCESS\n");
 
-    robo_stream.shutdown(Shutdown::Both).unwrap();
+    robo_stream.shutdown(Shutdown::Both).unwrap();*/
 
     let mut io_writer = BufWriter::new(io::stdout());
     let mut io_reader = BufReader::new(io::stdin());
@@ -133,6 +137,9 @@ fn main() {
         let input: Vec<&str> = io_buf.split(" ").collect();
 
         match input[0] {
+            "connect" => {
+                Robot::connect(&config.robot_address, &config.robot_port);   
+            },
             "quit" => { println!("Bye!"); running = false; },
             "help" => handle_help(),
             "listen" => handle_listen(&mut config),
@@ -204,7 +211,9 @@ fn handle_listen(config:&mut Config) {
         loop {
             // Read from robot
             let mut cmd_buf = [0; 3];
+
             stream.read_exact(&mut cmd_buf).unwrap();
+
             let cmd = cmd_buf[0];
             let len: i32 = ((cmd_buf[1] as i32) << 8) | (cmd_buf[2] as i32);
 
@@ -225,24 +234,6 @@ fn handle_listen(config:&mut Config) {
 
                     println!("[130:{}] Location: x={}, y={}, angle={}", len, x, y, real_angle);
                 },
-                139 => { // State
-                    let state_num = buf[0];
-                    //let state = RobotState::from(buf[0] as i8);
-                    println!("[139:{}] {}", len, state_num); 
-                },
-                140 => { // No idea what this is.. Possible the size of the robot?
-                    let mut buf_xs = &buf[0..2];
-                    let mut buf_ys = &buf[2..4];
-                    let mut buf_xoffs = &buf[4..6];
-                    let mut buf_yoffs = &buf[6..8];
-
-                    let xs = buf_xs.read_i16::<BigEndian>().unwrap();
-                    let ys = buf_ys.read_i16::<BigEndian>().unwrap();
-                    let xoffs = buf_xoffs.read_i16::<BigEndian>().unwrap();
-                    let yoffs = buf_yoffs.read_i16::<BigEndian>().unwrap();
-
-                    println!("[140:{}] Something fetched: ({}, {}, {}, {})", len, xs, ys, xoffs, yoffs);
-                },
                 134 => { // Battery
                     let mut charging:bool = false;
                     let mut finished:bool = false;
@@ -261,8 +252,31 @@ fn handle_listen(config:&mut Config) {
                     }
 
                     println!("[134:{}] Battery {}% (charging={} finished={} voltage={}", len, percentage, charging, finished, buf_voltage);
+                },
+                138 => { // 3D TOF HMAP
+                    println!("[{}:{}] 3D TOF HMAP", cmd, len);
+                },
+                139 => { // State
+                    let state_num = buf[0];
+                    //let state = RobotState::from(buf[0] as i8);
+                    println!("[139:{}] {}", len, state_num); 
+                },
+                140 => { // No idea what this is.. Possible the size of the robot?
+                    let mut buf_xs = &buf[0..2];
+                    let mut buf_ys = &buf[2..4];
+                    let mut buf_xoffs = &buf[4..6];
+                    let mut buf_yoffs = &buf[6..8];
+
+                    let xs = buf_xs.read_i16::<BigEndian>().unwrap();
+                    let ys = buf_ys.read_i16::<BigEndian>().unwrap();
+                    let xoffs = buf_xoffs.read_i16::<BigEndian>().unwrap();
+                    let yoffs = buf_yoffs.read_i16::<BigEndian>().unwrap();
+
+                    println!("[140:{}] Something fetched: ({}, {}, {}, {})", len, xs, ys, xoffs, yoffs);
+                },
+                _ => {
+                    println!("[{}:{}] Unhandled command", cmd, len);
                 }
-                _ => {}
             }
 
             match rx.try_recv() {
@@ -478,5 +492,3 @@ fn handle_save_location(location:&str, config:&mut Config) {
 
     config_file.sync_all().unwrap();
 }
-
-

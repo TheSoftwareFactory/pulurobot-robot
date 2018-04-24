@@ -15,18 +15,20 @@ use std::io;
 use std::path::Path;
 use std::net::TcpStream;
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Config {
     name: String,
     manufacturer: String,
-    server_ip: String,
-    private_key: String,
+    //server_address: String,
+    //server_port: String,
+    //private_key: String,
+    robot_address: String,
     robot_port: String,
-    location_a: String,
-    location_b: String,
-    location_c: String
+    location_a_x: Option<i32>,
+    location_a_y: Option<i32>,
+    location_b_x: Option<i32>,
+    location_b_y: Option<i32>,
 }
-
 
 fn main() {
 
@@ -81,7 +83,7 @@ fn main() {
         config.robot_port = String::from("22222");
     }
 
-    writer.write("Connecting to robot...".as_bytes()).unwrap();
+    writer.write("Testing connection to robot...".as_bytes()).unwrap();
     writer.flush().unwrap();
 
     let server_ip = config.server_ip.push(':');
@@ -95,25 +97,9 @@ fn main() {
     writer.write("SUCCESS\n".as_bytes()).unwrap();
     writer.flush().unwrap();
 
-    // Now for the location information 
-    // Return current location 
-    let mut send_str: Vec<u8> = vec![59,2,10];
-
-    send_str.push(59);
-    send_str.push(2);
-    send_str.push(10);
-    
-    match robo_stream.write(&[59,2,10]) {
-    //match robot_stream.write(send_str) {
-        Ok(s) => println!("Sent {} bytes of something", s),
-        Err(_) => println!("Unable to write to robot TCP connection")
-    }
-
     /*let mut location_a = String::new();
     match robo_stream.read_to_string(&mut location_a) {
         Ok(s) => println!("Received {} bytes: {}", s, location_a),
         Err(_) => println!("Problem receiving")
     }*/
-
-
 }
