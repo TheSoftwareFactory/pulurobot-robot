@@ -54,20 +54,19 @@ A promt will appear, and the following commands should be available:
 
 ## Functionality
 
-    `quit`        Terminates the program
+`quit` Terminates the program
 
-    `help`        Prints the help message containing available commands
+`help` Prints the help message containing available commands
 
-    `listen`      Streams information broadcasted by the robot (Still needs work).
-                  Press =Enter= to stop the stream.
+`listen` Streams information broadcasted by the robot (Still needs work). Press `Enter` to stop the stream.
 
-    `free`        Will unlock the wheels of the robot, to be able to freely move it around
+`free` Will unlock the wheels of the robot, to be able to freely move it around
 
-    `stop`        Will tell the robot to stop whatever it is currently doing
+`stop` Will tell the robot to stop whatever it is currently doing
 
-    `save [a|b]`  Saves robots current coordinates as location A or B
+`save [a|b]` Saves robots current coordinates as location A or B
 
-    `goto [a|b]`  Will try to route to location A or B respectively
+`goto [a|b]` Will try to route to location A or B respectively
 
 
 # Todo
