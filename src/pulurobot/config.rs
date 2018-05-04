@@ -69,7 +69,6 @@ impl ConfigHandler for Config {
             Err(_) => { return Err( ConfigError::new(ConfigErrorType::Open) ) }
         };
 
-        //match config_file.write_all(new_config.as_bytes()) {
         match serde_json::ser::to_writer_pretty(&config_file, &self) {
             Ok(_) => println!("Written config file"),
             Err(_) => { return Err( ConfigError::new(ConfigErrorType::Serialization) ) }

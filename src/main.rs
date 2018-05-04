@@ -1,19 +1,13 @@
-mod pulurobot;
-//mod config;
-
 #[macro_use]
 extern crate serde_derive;
-
 extern crate serde;
 extern crate serde_json;
 extern crate byteorder;
 
-use pulurobot::{Robot, PuluRobot, Config};
-//use pulurobot::config::{Config, ConfigHandler};
-//
+mod pulurobot;
 
+use pulurobot::{Robot, PuluRobot};
 use std::net::{TcpStream, Shutdown};
-//use std::fs::{OpenOptions};
 use std::io;
 use std::io::{BufWriter,BufReader,BufRead,Write,Read};
 use byteorder::{BigEndian, ReadBytesExt};
@@ -26,11 +20,11 @@ fn main() {
 
     let mut io_writer = BufWriter::new(io::stdout());
 
-    // Check connection
+    // Setup and test connection
     io_writer.write("Testing connection to robot...".as_bytes()).unwrap();
     io_writer.flush().unwrap();
 
-    let mut robot = match Robot::connect("config/config") {
+    let mut robot = match Robot::from_config("config/config") {
         Ok(s) => { 
             io_writer.write("OK\n".as_bytes()).unwrap(); 
             io_writer.flush().unwrap();
@@ -61,30 +55,27 @@ fn main() {
         io_buf.pop();
         let input: Vec<&str> = io_buf.split(" ").collect();
 
-        // TODO Clean up this mess
+        // Handle input commands
         match input[0] {
             "quit" => { println!("Bye!"); running = false; },
             "help" => handle_help(),
-            // TODO "listen" => handle_listen(), 
-            //"free" => handle_free(&mut config),
+            "listen" => handle_listen(&mut robot), 
             "free" => {
                 match robot.free() {
                     Ok(_) => (),
-                    Err(_) => println!("Unable send command to robot"),
+                    Err(_) => println!("Unable to send command to robot"),
                 }
             },
-            //"localize" => handle_localize(&mut config),
             "localize" => {
                 match robot.localize() {
                     Ok(_) => (),
-                    Err(_) => println!("Unable send command to robot"),
+                    Err(_) => println!("Unable to send command to robot"),
                 }
             },
-            //"stop" => handle_stop(&mut config),
             "stop" => {
                 match robot.stop() {
                     Ok(_) => (),
-                    Err(_) => println!("Unable send command to robot"),
+                    Err(_) => println!("Unable to send command to robot"),
                 }
             },
             "save" => {
@@ -115,7 +106,6 @@ fn main() {
                     println!("Command 'goto' takes 1 parameter");
                 }
             },
-            //"location" => handle_location(robo_stream),
             s => println!("Unknown command: {}", s),
         }
     }
@@ -140,9 +130,9 @@ fn handle_help() {
     "); 
 }
 
-fn handle_listen(config:&mut Config) { 
+fn handle_listen(robot:&mut Robot) { 
     // Check connection
-    let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
+    let robo_addr = robot.config.robot_address.to_owned() + ":" + &robot.config.robot_port;
     let mut stream = match TcpStream::connect(robo_addr.as_str()) {
         Ok(s) => s,
         Err(_) => panic!("Failed to connect to Robot")
@@ -240,7 +230,7 @@ fn handle_listen(config:&mut Config) {
     let _ = tx.send(());
 }
 
-fn handle_free(config:&mut Config) {
+/*fn handle_free(config:&mut Config) {
 
     let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
     let mut stream = match TcpStream::connect(robo_addr.as_str()) {
@@ -263,9 +253,9 @@ fn handle_free(config:&mut Config) {
     };
 
     stream.shutdown(Shutdown::Both).unwrap();
-}
+}*/
 
-fn handle_goto_location(location:&str, config:&mut Config) {
+/*fn handle_goto_location(location:&str, config:&mut Config) {
 
     /*let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
     let mut stream = match TcpStream::connect(robo_addr.as_str()) {
@@ -318,9 +308,9 @@ fn handle_goto_location(location:&str, config:&mut Config) {
     };
 
     stream.shutdown(Shutdown::Both).unwrap();*/
-}
+}*/
 
-fn handle_localize(config:&mut Config) {
+/*fn handle_localize(config:&mut Config) {
     let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
     let mut stream = match TcpStream::connect(robo_addr.as_str()) {
         Ok(s) => s,
@@ -342,9 +332,9 @@ fn handle_localize(config:&mut Config) {
     };
 
     stream.shutdown(Shutdown::Both).unwrap();
-}
+}*/
 
-fn handle_stop(config:&mut Config) {
+/*fn handle_stop(config:&mut Config) {
     let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
     let mut stream = match TcpStream::connect(robo_addr.as_str()) {
         Ok(s) => s,
@@ -366,7 +356,7 @@ fn handle_stop(config:&mut Config) {
     };
 
     stream.shutdown(Shutdown::Both).unwrap();
-}
+}*/
 
 
 /*fn handle_save_location(location:&str, config:&mut Config) {

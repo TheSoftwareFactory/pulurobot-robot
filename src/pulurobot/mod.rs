@@ -78,15 +78,15 @@ pub enum RobotState {
 }
 
 pub struct Robot {
-    stream: TcpStream,
-    config_path: String,
-    config: Config,
+    pub stream: TcpStream,
+    pub config_path: String,
+    pub config: Config,
 }
 
 pub trait PuluRobot {
-    fn connect(config_path: &str) -> Result<Robot, RobotError>;
+    fn from_config(config_path: &str) -> Result<Robot, RobotError>;
+    fn connect(&mut self) -> Result<(), RobotError>;
     fn disconnect(&mut self);
-    fn listen(&mut self) -> Result<String, RobotError>;
     fn get_location(&mut self) -> Result<RobotLocation, RobotError>;
     fn get_state() -> Result<RobotState, RobotError>;
     fn free(&mut self) -> Result<(), RobotError>;
