@@ -80,3 +80,4 @@ Will try to route to location A or B respectively
 
  - Improve `listen` with more commands, e.g. the `140` (Robot state) code.
  - Communication with server
+ - Improve error handling.
