@@ -13,13 +13,8 @@ byteorder = "1.2.1"
 
 [[bin]]
 name = "console"
-path = "src/console/main.rs"
+path = "src/main.rs"
 
 [[bin]]
 name = "setup"
-path = "src/setup/main.rs"
-
-[[bin]]
-name = "test"
-path = "src/test/main.rs"
-
+path = "src/setup.rs"

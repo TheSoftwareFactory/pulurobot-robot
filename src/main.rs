@@ -1,4 +1,5 @@
 mod pulurobot;
+//mod config;
 
 #[macro_use]
 extern crate serde_derive;
@@ -7,119 +8,43 @@ extern crate serde;
 extern crate serde_json;
 extern crate byteorder;
 
-use pulurobot::{Robot, PuluRobot, RobotState};
+use pulurobot::{Robot, PuluRobot, Config};
+//use pulurobot::config::{Config, ConfigHandler};
+//
 
 use std::net::{TcpStream, Shutdown};
-use std::fs::{File, OpenOptions};
-use std::path::Path;
+//use std::fs::{OpenOptions};
 use std::io;
 use std::io::{BufWriter,BufReader,BufRead,Write,Read};
 use byteorder::{BigEndian, ReadBytesExt};
 use std::thread;
 use std::sync::mpsc::{self, TryRecvError};
 
-#[derive(Deserialize, Serialize, Debug)]
-struct Config {
-    name: String,
-    manufacturer: String,
-    //server_address: String,
-    //server_port: String,
-    //private_key: String,
-    robot_address: String,
-    robot_port: String,
-    location_a_x: Option<i32>,
-    location_a_y: Option<i32>,
-    location_b_x: Option<i32>,
-    location_b_y: Option<i32>,
-}
-
-/*enum RobotState {
-    Undef = -1,
-	Idle = 0,
-	Think = 1,
-	Fwd = 2,
-	Rev = 3,
-	Left = 4,
-	Right = 5,
-	Charging = 6,
-    Daijuing = 7
-}*/
-
-impl From<i8> for RobotState {
-    fn from(t:i8) -> RobotState {
-        match t {
-            -1 => RobotState::Undef,
-            0 => RobotState::Idle,
-            1 => RobotState::Think,
-            2 => RobotState::Fwd,
-            3 => RobotState::Rev,
-            4 => RobotState::Left,
-            5 => RobotState::Right,
-            6 => RobotState::Charging,
-            7 => RobotState::Daijuing,
-            _ => panic!("Could not find RobotState")
-        }
-    }
-}
-
 fn main() {
-
-    // Read configuration file ----- 
-    
-    print!("Reading config file...");
 
     let mut running = true;
 
-    let config_path = "config/config";
-
-    let mut config:Config;
-
-    if Path::new(config_path).exists() {
-        let mut config_file = match File::open(config_path) {
-            Ok(s) => s,
-            Err(_) => { panic!("Error: Config file found, but unable to open"); }
-        };
-
-        let mut config_data = String::new();
-
-        match config_file.read_to_string(&mut config_data) {
-            Ok(_) => {},
-            Err(_) => { panic!("Error: Unable to read config file"); }
-        };
-
-        config = match serde_json::from_str(&config_data) {
-            Ok(s) => s,
-            Err(_) => panic!("Error: Unable to deserialize config file")
-        };
-
-        print!("SUCCESS\n");
-
-    } else {
-        // TODO Launch setup tool?
-        panic!("Configuration file not found. Please use the setup tool.");
-    }
-
-    // If the `name` field is empty, assume that it hasn't been configured?
-    match config.name.is_empty() {
-        // TODO Launch setup tool?
-        true => panic!("Error: Possible missing fields in config file."),
-        false => {} 
-    }
+    let mut io_writer = BufWriter::new(io::stdout());
 
     // Check connection
-    let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
+    io_writer.write("Testing connection to robot...".as_bytes()).unwrap();
+    io_writer.flush().unwrap();
 
-    /*print!("Testing connecting to robot at {}...", robo_addr);
-    let robo_stream = match TcpStream::connect(robo_addr.as_str()) {
-        Ok(s) => s,
-        Err(_) => panic!("Failed to connect to Robot")
+    let mut robot = match Robot::connect("config/config") {
+        Ok(s) => { 
+            io_writer.write("OK\n".as_bytes()).unwrap(); 
+            io_writer.flush().unwrap();
+            s
+        },
+        Err(_) => {
+            io_writer.write("FAILED\n".as_bytes()).unwrap();
+            io_writer.flush().unwrap();
+            panic!("Unable to connect to robot")
+        }
     };
 
-    print!("SUCCESS\n");
+    robot.disconnect();
 
-    robo_stream.shutdown(Shutdown::Both).unwrap();*/
-
-    let mut io_writer = BufWriter::new(io::stdout());
     let mut io_reader = BufReader::new(io::stdin());
     let mut io_buf = String::new();
 
@@ -136,23 +61,42 @@ fn main() {
         io_buf.pop();
         let input: Vec<&str> = io_buf.split(" ").collect();
 
+        // TODO Clean up this mess
         match input[0] {
-            "connect" => {
-                Robot::connect(&config.robot_address, &config.robot_port);   
-            },
             "quit" => { println!("Bye!"); running = false; },
             "help" => handle_help(),
-            "listen" => handle_listen(&mut config),
-            "free" => handle_free(&mut config),
-            "localize" => handle_localize(&mut config),
-            "stop" => handle_stop(&mut config),
+            // TODO "listen" => handle_listen(), 
+            //"free" => handle_free(&mut config),
+            "free" => {
+                match robot.free() {
+                    Ok(_) => (),
+                    Err(_) => println!("Unable send command to robot"),
+                }
+            },
+            //"localize" => handle_localize(&mut config),
+            "localize" => {
+                match robot.localize() {
+                    Ok(_) => (),
+                    Err(_) => println!("Unable send command to robot"),
+                }
+            },
+            //"stop" => handle_stop(&mut config),
+            "stop" => {
+                match robot.stop() {
+                    Ok(_) => (),
+                    Err(_) => println!("Unable send command to robot"),
+                }
+            },
             "save" => {
                 if input.len() == 2 {
                     match input[1] {
-                        "a" => handle_save_location("a", &mut config),
-                        "b" => handle_save_location("b", &mut config),
-                        s => println!("Unknown location: {}", s),
-                    }
+                        "a" => robot.save_location("a"),
+                        "b" => robot.save_location("b"),
+                        s => {
+                            println!("Unknown location: {}", s);
+                            Ok(())
+                        },
+                    };
                 } else {
                     println!("Command 'save' takes 1 parameter");
                 }
@@ -160,19 +104,20 @@ fn main() {
             "goto" => {
                 if input.len() == 2 {
                     match input[1] {
-                        "a" => handle_goto_location("a", &mut config),
-                        "b" => handle_goto_location("b", &mut config),
-                        s => println!("Unknown location: {}", s),
-                    }
+                        "a" => robot.goto_point("a"),
+                        "b" => robot.goto_point("b"),
+                        s => {
+                            println!("Unknown location: {}", s);
+                            Ok(())
+                        },
+                    };
                 } else {
                     println!("Command 'goto' takes 1 parameter");
                 }
-
             },
             //"location" => handle_location(robo_stream),
             s => println!("Unknown command: {}", s),
         }
-
     }
 }
 
@@ -322,43 +267,30 @@ fn handle_free(config:&mut Config) {
 
 fn handle_goto_location(location:&str, config:&mut Config) {
 
-    let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
+    /*let robo_addr = config.robot_address.to_owned() + ":" + &config.robot_port;
     let mut stream = match TcpStream::connect(robo_addr.as_str()) {
         Ok(s) => s,
         Err(_) => panic!("Failed to connect to Robot")
-    };
-    //let mut stream = TcpStream::connect("192.168.43.23:22222").unwrap();
-    stream.set_nonblocking(false).expect("set_nonblocking failed");
-    
-    let mut buf = [0; 12];
-    let x:i32;
+    };*/
+
+    /*let x:i32;
     let y:i32;
 
     if location == "a" {
-        x = match config.location_a_x {
-            Some(ax) => ax,
-            None => panic!("No x coordinate for location A found in config"),
-        };
-
-         y = match config.location_a_y {
-            Some(ay) => ay,
-            None => panic!("No y coordinate for location A found in config"),
-        };
-
+        x = config.location_a_x;
+        y = config.location_a_y;
     } else if location == "b" {
-        x = match config.location_b_x {
-            Some(bx) => bx,
-            None => panic!("No x coordinate for location B found in config"),
-        };
-
-        y = match config.location_b_y {
-            Some(by) => by,
-            None => panic!("No y coordinate for location B found in config"),
-        };
+        x = config.location_b_x;
+        y = config.location_b_y;
     } else {
         println!("Unknown location");
         return;
-    }
+    }*/
+
+    //let mut stream = TcpStream::connect("192.168.43.23:22222").unwrap();
+    //stream.set_nonblocking(false).expect("set_nonblocking failed");
+    
+    /*let mut buf = [0; 12];
 
     buf[0] = 56;
 
@@ -375,14 +307,17 @@ fn handle_goto_location(location:&str, config:&mut Config) {
     buf[9] = (y>>8) as u8;
     buf[10] = (y>>0) as u8;
 
-    buf[11] = 0;
+    buf[11] = 0;*/
 
-    match stream.write_all(&mut buf) {
+      
+
+
+    /*match stream.write_all(&mut buf) {
         Ok(_) => {},
         Err(e) => println!("{:?}", e)
     };
 
-    stream.shutdown(Shutdown::Both).unwrap();
+    stream.shutdown(Shutdown::Both).unwrap();*/
 }
 
 fn handle_localize(config:&mut Config) {
@@ -433,7 +368,8 @@ fn handle_stop(config:&mut Config) {
     stream.shutdown(Shutdown::Both).unwrap();
 }
 
-fn handle_save_location(location:&str, config:&mut Config) {
+
+/*fn handle_save_location(location:&str, config:&mut Config) {
 
     println!("Saving location..");
     let x:i32;
@@ -469,13 +405,13 @@ fn handle_save_location(location:&str, config:&mut Config) {
 
     stream.shutdown(Shutdown::Both).unwrap();
 
-    if location == "a" {
-        config.location_a_x = Some(x);
-        config.location_a_y = Some(y);
+    /*if location == "a" {
+        config.location_a_x = x;
+        config.location_a_y = y;
     } else if location == "b" {
-        config.location_b_x = Some(x);
-        config.location_b_y = Some(y);
-    }
+        config.location_b_x = x;
+        config.location_b_y = y;
+    }*/
 
     // Write to config file 
     let config_path = "config/config";
@@ -491,4 +427,4 @@ fn handle_save_location(location:&str, config:&mut Config) {
     };
 
     config_file.sync_all().unwrap();
-}
+}*/
