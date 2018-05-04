@@ -11,7 +11,7 @@ extern crate byteorder;
 
 mod pulurobot;
 
-use std::io::{BufWriter,Write};
+use std::io::{BufWriter,Write,BufReader,BufRead};
 use std::io;
 use std::path::Path;
 
@@ -25,10 +25,13 @@ fn main() {
     let config_path = "config/config";
     let mut config:Config = Config::new();
 
+    // Check if config file exists
     if Path::new(config_path).exists() {
+        // Try to open
         config = match config.from_file(config_path) {
             Ok(s) => s,
             Err(_) => {
+                // On fail, create new config file
                 match Config::create(config_path) {
                     Ok(c) => c,
                     Err(_) => panic!("Unable to create configuration file"),
@@ -36,47 +39,85 @@ fn main() {
             },
         }
     } else {
-        // Create config file
+        // Create new config file
         config = match Config::create(config_path) {
             Ok(s) => s,
             Err(_) => panic!("Unable to create configuration file"),
         };
     }
 
-    let reader = io::stdin();
+    let mut reader = BufReader::new(io::stdin());
+    let mut read_buffer = String::new();
 
-    writer.write("Name of robot: ".as_bytes()).unwrap();
+    // Handle Name
+    if config.name.is_empty() {
+        writer.write("Name of robot: ".as_bytes()).unwrap();
+    } else {
+        writer.write((String::from("Name of robot [") + &config.name + "]: ").as_bytes()).unwrap();
+    }
     writer.flush().unwrap();
 
-    reader.read_line(&mut config.name).unwrap();
-    config.name.pop(); // Remove trailing newline
+    reader.read_line(&mut read_buffer).unwrap();
+    read_buffer.pop(); // Remove trailing newline
 
-    writer.write("Manufacturer: ".as_bytes()).unwrap();
-    writer.flush().unwrap();
-
-    reader.read_line(&mut config.manufacturer).unwrap();
-    config.manufacturer.pop(); // Remove trailing newline
-
-    writer.write("Robot IP [localhost]: ".as_bytes()).unwrap();
-    writer.flush().unwrap();
-
-    reader.read_line(&mut config.robot_address).unwrap();
-    config.robot_address.pop(); // Remove trailing newline
-
-    if config.robot_address.is_empty() {
-        config.robot_address = String::from("localhost");
+    if !read_buffer.is_empty() {
+        config.name = read_buffer.clone();  
     }
 
-    writer.write("Robot Port [22222]: ".as_bytes()).unwrap();
+    read_buffer.clear();
+
+    // Handle Manufacturer
+    if config.manufacturer.is_empty() {
+        writer.write("Manufacturer: ".as_bytes()).unwrap();
+    } else {
+        writer.write((String::from("Manufacturer: [") + &config.manufacturer + "]: ").as_bytes()).unwrap();
+    }
     writer.flush().unwrap();
 
-    reader.read_line(&mut config.robot_port).unwrap();
-    config.robot_port.pop(); // Remove trailing newline
+    reader.read_line(&mut read_buffer).unwrap();
+    read_buffer.pop(); // Remove trailing newline
 
+    if !read_buffer.is_empty() {
+        config.manufacturer = read_buffer.clone();
+    }
+
+    read_buffer.clear();
+
+    // Handle Robot IP
+    if config.manufacturer.is_empty() {
+        writer.write("Robot IP: ".as_bytes()).unwrap();
+    } else {
+        writer.write((String::from("Robot IP [") + &config.robot_address + "]: ").as_bytes()).unwrap();
+    }
+    writer.flush().unwrap();
+
+    reader.read_line(&mut read_buffer).unwrap();
+    read_buffer.pop(); // Remove trailing newline
+
+    if !read_buffer.is_empty() {
+        config.robot_address = read_buffer.clone();
+    }
+
+    read_buffer.clear();
+
+    // Handle Robot Port
     if config.robot_port.is_empty() {
-        config.robot_port = String::from("22222");
+        writer.write("Robot Port: ".as_bytes()).unwrap();
+    } else {
+        writer.write((String::from("Robot Port [") + &config.robot_port + "]: ").as_bytes()).unwrap();
+    }
+    writer.flush().unwrap();
+
+    reader.read_line(&mut read_buffer).unwrap();
+    read_buffer.pop(); // Remove trailing newline
+
+    if !read_buffer.is_empty() {
+        config.robot_port = read_buffer.clone();
     }
 
+    read_buffer.clear();
+
+    // Write to config file
     writer.write("Writing to configuration file...".as_bytes()).unwrap();
     writer.flush().unwrap();
     match config.write(config_path) {
