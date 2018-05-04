@@ -54,7 +54,8 @@ A promt will appear, and the following commands should be available:
 
 ## Functionality
 
-`quit` Terminates the program
+##### `quit`
+Terminates the program
 
 `help` Prints the help message containing available commands
 
