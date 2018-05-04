@@ -17,17 +17,17 @@ also offers an easy way to cross-compile to the Raspberry-Pi.
 
  1. Install the Rust programming language
  2. Clone repository using:
-      #+BEGIN_SRC bash 
-      git clone https://github.com/TheSoftwareFactory/pulurobot-robot.git
-      #+END_SRC
+    #+BEGIN_SRC bash 
+    git clone https://github.com/TheSoftwareFactory/pulurobot-robot.git
+    #+END_SRC
  3. Enter directory =pulurobot-robot=
-      #+BEGIN_SRC bash 
-      cd pulurobot-robot
-      #+END_SRC
+    #+BEGIN_SRC bash 
+    cd pulurobot-robot
+    #+END_SRC
  4. Build package, which will also fetch any dependencies
-      #+BEGIN_SRC bash 
-      cargo build
-      #+END_SRC
+    #+BEGIN_SRC bash 
+    cargo build
+    #+END_SRC
 
 * Setup Tool
 ** Run
