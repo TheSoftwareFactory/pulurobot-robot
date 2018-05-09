@@ -5,6 +5,9 @@ use std::io::{Read, Write};
 use byteorder::{BigEndian, ReadBytesExt};
 
 impl PuluRobot for Robot {
+    /* Establish connection with robot.
+     * Note: Can only be used after initializing a Robot object. See from_config
+     */
     fn connect(&mut self) -> Result<(), RobotError> {
         let robo_addr = (self.config.robot_address.to_owned() + ":" + &self.config.robot_port).parse().unwrap();
         self.stream = match TcpStream::connect_timeout(&robo_addr, Duration::new(5,0)) {
@@ -14,6 +17,9 @@ impl PuluRobot for Robot {
         return Ok(())
     }
 
+    /* Initilize a Robot object from a config file.
+     * Currently also attempts to connect to the robot.
+     */
     fn from_config(config_path: &str) -> Result<Robot, RobotError> {
 
         let mut config = Config::new();
@@ -41,6 +47,9 @@ impl PuluRobot for Robot {
         self.stream.shutdown(Shutdown::Both).unwrap();
     }
 
+    /* Will connect to the robot, and listen for information from the robot.
+     * Disconnects and returns when a location-packet has been received.
+     */
     fn get_location(&mut self) -> Result<RobotLocation, RobotError> {
         let x:i32;
         let y:i32;
@@ -76,13 +85,14 @@ impl PuluRobot for Robot {
         return Ok(RobotLocation { x: x, y: y });
     }
 
-
+    // TODO 
     fn get_state() -> Result<RobotState, RobotError> {
         return Err( RobotError::new(RobotErrorType::NotYetImplemented) )
     }
 
+    /* Will connect to the robot, and send a request to unblock the wheels
+     */
     fn free(&mut self) -> Result<(), RobotError> {
-
         let mut buf = [0; 4];
 
         buf[0] = 58;
@@ -105,7 +115,8 @@ impl PuluRobot for Robot {
         Ok(())
     }
 
-    // Routes the robot to a point defined in the config file
+    /* Routes the robot to a point defined in the config file
+     */
     fn goto_point(&mut self, point: &str) -> Result<(), RobotError> {
         // Get point from config file   
         match self.config.get_point(point) {
@@ -118,7 +129,8 @@ impl PuluRobot for Robot {
         }
     }
 
-    // Routes the robot to specific coordinates
+    /* Routes the robot to specific coordinates
+     */
     fn goto(&mut self, x: i32, y: i32) -> Result<(), RobotError> {
 
         match self.connect() {
@@ -126,8 +138,6 @@ impl PuluRobot for Robot {
             Err(_) => { return Err( RobotError::new(RobotErrorType::Connection) ) }
         };
  
-
-
         let mut buf = [0; 12];
 
         buf[0] = 56;
@@ -157,6 +167,8 @@ impl PuluRobot for Robot {
         Ok(())
     } 
 
+    /* Asks the robot to localize itself, i.e. resetting its internal coordinate system
+     */
     fn localize(&mut self) -> Result<(), RobotError> {
         let mut buf = [0; 4];
 
@@ -181,6 +193,8 @@ impl PuluRobot for Robot {
         Ok(())
     }
 
+    /* Asks the robot to stop whatever it is currently doing
+     */
     fn stop(&mut self) -> Result<(), RobotError> {
         let mut buf = [0; 4];
 
@@ -204,6 +218,8 @@ impl PuluRobot for Robot {
         Ok(())
     }
 
+    /* Saves the current location of the robot as a point to the config file
+     */
     fn save_location(&mut self, location: &str) -> Result<(), RobotError> { 
         let robo_location = self.get_location()?;
 

@@ -136,6 +136,9 @@ fn handle_help() {
     "); 
 }
 
+/* Handler for the 'listen' command. Will spawn a thread which will read and parse
+ * data from the TCPStream the robot is broadcasting
+ */
 fn handle_listen(robot:&mut Robot) { 
     // Check connection
     let robo_addr = robot.config.robot_address.to_owned() + ":" + &robot.config.robot_port;

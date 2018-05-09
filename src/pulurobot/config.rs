@@ -19,6 +19,9 @@ impl ConfigHandler for Config {
         }
     }
 
+    /* Creates a configuration file at the specified path, and writes
+     * default configuration to it
+     */
     fn create(config_path:&str) -> Result<Self, ConfigError> {
         let mut config = Config::new();
         match File::create(config_path) {
@@ -33,6 +36,8 @@ impl ConfigHandler for Config {
         }
     }
 
+    /* Reads a config file (in json format), and returns a Config object
+     */
     fn from_file(self, config_path:&str) -> Result<Self, ConfigError> {
 
         let config:Config;
@@ -62,6 +67,8 @@ impl ConfigHandler for Config {
         return Ok(config);
     }
 
+    /* Writes the Config object to the file specified by config_path
+     */
     fn write(&mut self, config_path: &str) -> Result<(), ConfigError> {
 
         let config_file = match OpenOptions::new().write(true).truncate(true).open(config_path) {
@@ -79,6 +86,8 @@ impl ConfigHandler for Config {
         return Ok(());
     }
 
+    /* Set coordinates for point "a" or "b"
+     */
     fn set_point(&mut self, name: &str, x: i32, y: i32) -> Result<(), ConfigError> {
 
         if name == "a" {
@@ -92,6 +101,8 @@ impl ConfigHandler for Config {
         return Ok(());
     }
 
+    /* Get coordinates for point "a" or "b"
+     */
     fn get_point(&mut self, name: &str) -> Result<(i32,i32), ConfigError> {
 
         let x:i32;

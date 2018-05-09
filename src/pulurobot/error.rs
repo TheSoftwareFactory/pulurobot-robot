@@ -1,3 +1,5 @@
+/* Some implementation of low-level error handling */
+
 use super::{RobotErrorHandler, RobotError, RobotErrorType, ConfigErrorHandler, ConfigError, ConfigErrorType};
 
 impl RobotErrorHandler for RobotError {
